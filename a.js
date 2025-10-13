@@ -1,61 +1,98 @@
-const { Markup } = require('telegraf');
-const { WEB_APP_URL } = require('./config');
+const TelegramBot = require('node-telegram-bot-api');
 
-const startHandler = async (ctx) => {
-  const chatId = ctx.message.chat.id;
-  const referralId = ctx.message.text.split('=')[1] || '';
-  const username = ctx.message.chat.username;
+// === Replace with your actual bot token ===
+const token = '7611198846:AAE0s6FPJFbHOOuAjnsc3NKinOlKRGKHjps';
 
-  // Personalized welcome message
-  const welcomeMessage = `${username} Welcome to HodlSwap!`;
-  const description = `HodlSwap is like a treasure hunt for tokens! Users can earn them by using different mining app features. And guess what? The players get most of the tokens!
+// === Create bot instance ===
+const bot = new TelegramBot(token, { polling: true });
 
-Let's gather your squad! More buddies mean more coins.
+// === /start command ===
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
 
-Let's make it rain!`;
+  const welcomeText = `
+🦊 *Welcome to HODLFOX!*
 
-  if (referralId) {
-    // Referral ID is present
-    await ctx.reply(`Welcome to Hodl Swap! You are referred by: ${referralId}`, Markup.inlineKeyboard([
-      [Markup.button.webApp('Play', `${WEB_APP_URL}/home/${chatId}/${referralId}`)],
-      [Markup.button.url('Join Community', 'https://t.me/hodlswap')]
-    ]));
-  } else {
-    // Referral ID is not present
-    await ctx.reply('Welcome to Hodl Swap!', Markup.inlineKeyboard([
-      [Markup.button.webApp('Play', `${WEB_APP_URL}/home/${chatId}`)],
-      [Markup.button.url('Join Community', 'https://t.me/hodlswap')]
-      [Markup.button.callback('/help', 'Help')]
-    ]));
+🔥 Your crypto companion inside Telegram.
+
+Select an option below 👇
+`;
+
+  const options = {
+    parse_mode: 'Markdown',
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '🚀 Start', callback_data: 'start_app' },
+          { text: '❓ Help', callback_data: 'help' }
+        ]
+      ]
+    }
+  };
+
+  bot.sendMessage(chatId, welcomeText, options);
+});
+
+// === Handle button actions ===
+bot.on('callback_query', async (query) => {
+  const chatId = query.message.chat.id;
+  const action = query.data;
+
+  if (action === 'start_app') {
+    const photoUrl = 'https://i.ibb.co/4pw7wYr/hodlfox-banner.jpg';
+    const message = `
+🦊 *Welcome to HODLFOX Web App!*
+
+Click below to open HODLFOX inside Telegram 👇
+`;
+
+    const button = {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: '🚀 Open HODLFOX App',
+              web_app: {
+                url: 'https://storage-hodlswap-iqs2fh-39b519-31-97-60-52.traefik.me/'
+              }
+            }
+          ]
+        ]
+      }
+    };
+
+    await bot.sendPhoto(chatId, photoUrl, { caption: '🔥 Launching HODLFOX...' });
+    await bot.sendMessage(chatId, message, button);
   }
 
-  // Send the welcome message with image, text, and buttons
-  await ctx.replyWithPhoto(
-    { source: 'https://i.imgur.com/DQRX2Th.png' },
-    {
-      caption: `${welcomeMessage}\n\n(Description)\n\n${description}`,
-      reply_markup: Markup.inlineKeyboard([
-        [Markup.button.webApp('Play', `${WEB_APP_URL}/home/${chatId}/${referralId}`)],
-        [Markup.button.url('Join Community', 'https://t.me/hodlswap')],
-        [Markup.button.callback('/help', 'Help')]
-      ])
-    }
-  );
-};
+  if (action === 'help') {
+    const helpText = `
+🧠 *HODLFOX Commands:*
+- /start → Show start menu
+- /echo [text] → Echo your message
+- /photo → Send photo
+- /audio → Send audio
+- /love → Fun interaction
+- /editable → Editable text demo
+`;
 
-const helpHandler = async (ctx) => {
-  await ctx.reply('To use this bot, please start by sending the /start command. This will take you to the HodlSwap platform where you can start earning tokens!', Markup.inlineKeyboard([
-    [Markup.button.callback('/start', '/start')]
-  ]));
-};
+    bot.sendMessage(chatId, helpText, { parse_mode: 'Markdown' });
+  }
 
-const webAppDataHandler = async (ctx) => {
-  // Handle data received from the web app
-  console.log('Web App Data:', ctx.webAppData);
-};
+  bot.answerCallbackQuery(query.id);
+});
 
-module.exports = {
-  startHandler,
-  helpHandler,
-  webAppDataHandler
-};
+// === /echo command ===
+bot.onText(/\/echo (.+)/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const resp = match[1];
+  bot.sendMessage(chatId, resp);
+});
+
+// === Fallback for all other messages ===
+bot.on('message', (msg) => {
+  if (!msg.text.startsWith('/')) {
+    bot.sendMessage(msg.chat.id, '✅ Use /start to see options.');
+  }
+});
