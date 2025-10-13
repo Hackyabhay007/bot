@@ -30,6 +30,8 @@ bot.onText(/\/start.*/, async (msg) => {
   const welcomeText = `
 🦊 *Welcome to HODLFOX, ${username}!*
 
+Build by Abhay Gupta
+
 🔥 Your crypto companion inside Telegram.
 
 Select an option below 👇
