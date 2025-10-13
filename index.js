@@ -3,7 +3,7 @@ const fs = require('fs');
 
 // === Bot Config ===
 const BOT_TOKEN = "7611198846:AAE0s6FPJFbHOOuAjnsc3NKinOlKRGKHjps";
-const WEB_APP_URL = "https://hodlfox.netlify.app";
+const WEB_APP_URL = "https://hodlfox.netlify.app/";
 const TELEGRAM_CHANNEL = "https://t.me/hodlfox_bot";
 const LOCAL_IMAGE = "logo.png"; // make sure this file exists
 
